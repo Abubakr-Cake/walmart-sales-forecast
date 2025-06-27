@@ -48,8 +48,6 @@ mse = mean_squared_error(y_test, y_pred)
 
 st.subheader("🔍 Preview of Merged Data")
 st.dataframe(df.head())
-st.write(f"📉 Model Mean Squared Error: {mse:.2f}")
-st.success("✅ Model trained and cached successfully!")
 
 # Sidebar filters for line chart
 st.sidebar.header("📌 Select Filters")
@@ -87,7 +85,10 @@ with col2:
     st.pyplot(fig2)
 
 st.markdown("---")
-st.write("📌 This helps you explore seasonal trends before forecasting.")
+# st.write("📌 This helps you explore seasonal trends before forecasting.")
+st.write(f"📉 Model Mean Squared Error: {mse:.2f}")
+st.success("✅ Model trained and cached successfully!")
+
 
 # 🧩 Predict Future Sales inputs
 st.sidebar.header("🧩 Predict Future Sales")
