@@ -12,6 +12,7 @@ import io
 st.set_page_config(page_title="Walmart Sales Forecasting", layout="wide")
 st.title("🎒 Walmart Sales Forecasting Dashboard")
 
+# Load and cache data
 @st.cache_data
 def load_data():
     stores = pd.read_csv('data/stores.csv')
@@ -21,6 +22,7 @@ def load_data():
 
 stores, features, train = load_data()
 
+# Merge data
 df = pd.merge(train, stores, on='Store')
 df = pd.merge(df, features, on=['Store', 'Date', 'IsHoliday'])
 df["Date"] = pd.to_datetime(df["Date"])
@@ -28,6 +30,7 @@ df["Year"] = df["Date"].dt.year
 df["Month"] = df["Date"].dt.month
 df["Week"] = df["Date"].dt.isocalendar().week
 
+# Cache scaler and model
 @st.cache_resource
 def get_scaler_and_model(X, y):
     scaler = StandardScaler()
@@ -46,29 +49,17 @@ scaler, model, X_test, y_test = get_scaler_and_model(X, y)
 y_pred = model.predict(X_test)
 mse = mean_squared_error(y_test, y_pred)
 
+# Display data preview and model performance
 st.subheader("🔍 Preview of Merged Data")
 st.dataframe(df.head())
 st.write(f"📉 Model Mean Squared Error: {mse:.2f}")
 st.success("✅ Model trained and cached successfully!")
 
-# Sidebar filters for line chart
-st.sidebar.header("📌 Select Filters")
-selected_store = st.sidebar.selectbox("Choose a Store", sorted(df["Store"].unique()))
-selected_dept = st.sidebar.selectbox("Choose a Department", sorted(df["Dept"].unique()))
-
-# Weekly sales line chart (moved above)
-filtered_df = df[(df["Store"] == selected_store) & (df["Dept"] == selected_dept)]
-latest_date = filtered_df["Date"].max()
-six_months_ago = latest_date - pd.DateOffset(months=6)
-filtered_df = filtered_df[filtered_df["Date"] >= six_months_ago]
-st.subheader(f"📈 Weekly Sales (Last 6 Months) for Store {selected_store}, Dept {selected_dept}")
-st.line_chart(filtered_df.sort_values("Date")[["Date", "Weekly_Sales"]].set_index("Date"))
-
-# Side-by-side charts (aligned)
+# Visualizations
 col1, col2 = st.columns(2)
 with col1:
-    st.subheader("📌 Actual vs Predicted Weekly Sales (Test Set)")
-    fig1, ax1 = plt.subplots(figsize=(6, 4))
+    st.subheader("Actual vs Predicted Weekly Sales")
+    fig1, ax1 = plt.subplots(figsize=(5, 4))
     ax1.scatter(y_test, y_pred, alpha=0.4, color='royalblue')
     ax1.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=2)
     ax1.set_xlabel('Actual Weekly Sales')
@@ -79,24 +70,37 @@ with col1:
 with col2:
     st.subheader("📉 Prediction Error Distribution")
     errors = y_test - y_pred
-    fig2, ax2 = plt.subplots(figsize=(6, 4))
+    fig2, ax2 = plt.subplots(figsize=(5, 4))
     ax2.hist(errors, bins=50, color='coral', edgecolor='black')
     ax2.set_title("Prediction Errors")
     ax2.set_xlabel("Error")
     ax2.set_ylabel("Frequency")
     st.pyplot(fig2)
 
+# Sidebar filters
+st.sidebar.header("📌 Select Filters")
+selected_store = st.sidebar.selectbox("Choose a Store", sorted(df["Store"].unique()))
+selected_dept = st.sidebar.selectbox("Choose a Department", sorted(df["Dept"].unique()))
+
+# Sales line chart
+filtered_df = df[(df["Store"] == selected_store) & (df["Dept"] == selected_dept)]
+latest_date = filtered_df["Date"].max()
+six_months_ago = latest_date - pd.DateOffset(months=6)
+filtered_df = filtered_df[filtered_df["Date"] >= six_months_ago]
+st.subheader(f"📈 Weekly Sales (Last 6 Months) for Store {selected_store}, Dept {selected_dept}")
+st.line_chart(filtered_df.sort_values("Date")[["Date", "Weekly_Sales"]].set_index("Date"))
+
 st.markdown("---")
 st.write("📌 This helps you explore seasonal trends before forecasting.")
 
-# 🧩 Predict Future Sales inputs
+# 🧩 Auto-predict with dropdowns
 st.sidebar.header("🧩 Predict Future Sales")
 store_input = st.sidebar.selectbox("Store", sorted(df["Store"].unique()))
 dept_input = st.sidebar.selectbox("Department", sorted(df["Dept"].unique()))
-temp = st.sidebar.slider("Temperature", float(df["Temperature"].min()), float(df["Temperature"].max()))
-fuel = st.sidebar.slider("Fuel Price", float(df["Fuel_Price"].min()), float(df["Fuel_Price"].max()))
-cpi = st.sidebar.slider("CPI", float(df["CPI"].min()), float(df["CPI"].max()))
-unemp = st.sidebar.slider("Unemployment", float(df["Unemployment"].min()), float(df["Unemployment"].max()))
+temp = st.sidebar.selectbox("Temperature", sorted(df["Temperature"].dropna().unique()))
+fuel = st.sidebar.selectbox("Fuel Price", sorted(df["Fuel_Price"].dropna().unique()))
+cpi = st.sidebar.selectbox("CPI", sorted(df["CPI"].dropna().unique()))
+unemp = st.sidebar.selectbox("Unemployment", sorted(df["Unemployment"].dropna().unique()))
 year = st.sidebar.selectbox("Year", sorted(df["Year"].unique()))
 month = st.sidebar.selectbox("Month", list(range(1, 13)))
 week = st.sidebar.selectbox("Week", list(range(1, 54)))
