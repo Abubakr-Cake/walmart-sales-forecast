@@ -67,7 +67,7 @@ st.line_chart(filtered_df.sort_values("Date")[["Date", "Weekly_Sales"]].set_inde
 # Side-by-side charts (aligned)
 col1, col2 = st.columns(2)
 with col1:
-    st.subheader("📌Actual vs Predicted Weekly Sales")
+    st.subheader("Actual vs Predicted Weekly Sales")
     fig1, ax1 = plt.subplots(figsize=(6, 4))
     ax1.scatter(y_test, y_pred, alpha=0.4, color='royalblue')
     ax1.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=2)
