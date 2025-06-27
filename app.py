@@ -63,6 +63,10 @@ st.subheader(f"📈 Weekly Sales (Last 6 Months) for Store {selected_store}, Dep
 st.line_chart(filtered_df.sort_values("Date")[["Date", "Weekly_Sales"]].set_index("Date"))
 
 # Side-by-side charts (aligned)
+
+st.write(f"📉 Model Mean Squared Error: {mse:.2f}")
+st.success("✅ Model trained and cached successfully!")
+
 col1, col2 = st.columns(2)
 with col1:
     st.subheader("Actual vs Predicted Weekly Sales")
@@ -86,8 +90,6 @@ with col2:
 
 st.markdown("---")
 # st.write("📌 This helps you explore seasonal trends before forecasting.")
-st.write(f"📉 Model Mean Squared Error: {mse:.2f}")
-st.success("✅ Model trained and cached successfully!")
 
 
 # 🧩 Predict Future Sales inputs
